@@ -13,6 +13,8 @@ var database = client.db("CST3144");
 app.use(cors());
 app.use(express.json());
 
+console.log("PUT ROUTE TEST: server.js loaded");
+
 app.use(function(req, res, next) {
     console.log("Request received:", req.method, req.url);
     next();
@@ -32,7 +34,29 @@ app.get("/lessons", async function(req, res)
 
 });
 
-app.post("/orders", async function(req, res) {
+app.put("/lessons/:id", async function(req, res) {
+    try{
+        var lessonId = Number(req.params.id);
+        var updatedLesson = req.body;
+
+        var result = await database.collection("lessons").updateOne(
+        {id: lessonId},
+        {$set: updatedLesson}
+        );
+
+        if (result.matchedCount === 0) {
+            res.status(404).send("Lesson not found");
+        } else{
+            res.send("Lesson updated successfully");
+        }
+    } catch(error) {
+        console.log("Error updating lesson: ", error);
+        res.status(500).send(error.message);
+    }
+});
+
+console.log("PUT ROUTE REGISTERED");
+app.post("/orders" , async function(req, res) {
     try{
         var order = req.body;
         var result = await database.collection("orders").insertOne(order);
