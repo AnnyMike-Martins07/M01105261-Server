@@ -43,6 +43,41 @@ app.get("/lessons", async function(req, res)
 
 });
 
+app.get("/search", async function(req, res)
+{
+     console.log("NEW SEARCH ROUTE IS RUNNING");
+    try{
+        var searchTerm = req.query.search;
+        if (!searchTerm) {
+            return res.status(400).json({message: "Please enter a search term"});
+        }
+        searchTerm = searchTerm.trim();
+
+        var searchConditions = [
+            {subject: {$regex: searchTerm, $options: "i"}},
+            {location: {$regex: searchTerm, $options: "i"}}
+        ];
+
+        if(!isNaN(searchTerm)) {
+            searchConditions.push({price: Number(searchTerm)});
+            searchConditions.push({spaces: Number(searchTerm)});
+        }
+
+
+        var lessons = await database.collection("lessons").find({
+            $or: searchConditions
+        }).toArray();
+
+        res.status(200).json(lessons);
+    } catch(error) {
+        console.log("Error searching lessons: ", error);
+        res.status(500).send("Error searching lessons");
+    }
+        
+        });
+
+
+
 app.put("/lessons/:id", async function(req, res) {
     try{
         var lessonId = Number(req.params.id);
