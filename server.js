@@ -3,6 +3,7 @@ var express = require("express");
 var cors = require("cors");
 var {MongoClient} = require("mongodb");
 
+
 var app = express();
 
 var uri = process.env.MONGODB_URI;
@@ -13,12 +14,20 @@ var database = client.db("CST3144");
 app.use(cors());
 app.use(express.json());
 
-console.log("PUT ROUTE TEST: server.js loaded");
-
 app.use(function(req, res, next) {
-    console.log("Request received:", req.method, req.url);
+    res.setHeader("X-Logger-Middleware", "executed");
+
+    console.log("Request received:", req.method, req.originalUrl);
+    
+
     next();
 });
+app.use("/images", express.static(__dirname + "/public"));
+console.log("Public folder:", __dirname + "/public");
+
+console.log("PUT ROUTE TEST: server.js loaded");
+
+
 app.get("/", function(req, res) {
     res.send("TEST 123 - My current server.js");
 });
