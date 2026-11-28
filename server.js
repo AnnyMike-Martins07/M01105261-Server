@@ -43,6 +43,38 @@ app.get("/lessons", async function(req, res)
 
 });
 
+app.get("/teachers", async function(req, res) {
+    try {
+        var teachers = await database.collection("Teachers").find().toArray();
+        res.send(teachers);
+    } catch(error) {
+        console.log("Error retrieving teachers: ", error);
+        res.status(500).send("Error retrieving teachers");
+    }
+});
+
+app.get("/teachers/:id/lessons", async function(req, res) {
+    try{
+        var teacherId = Number(req.params.id);
+        var teacher = await database.collection("Teachers").findOne({id: teacherId});
+
+        if (!teacher) {
+            return  res.status(404).send("Teacher not found");
+        }
+
+        var lessons = await database.collection("lessons").find({
+            id: {
+                $in: teacher.lessonIds
+            }
+        }).toArray();
+
+        res.send(lessons);
+    } catch(error) {
+        console.log("Error retrieving teacher lessons: ", error);
+        res.status(500).send("Error retrieving teacher lessons");
+    }
+});
+
 app.get("/search", async function(req, res)
 {
      console.log("NEW SEARCH ROUTE IS RUNNING");
