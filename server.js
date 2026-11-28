@@ -130,19 +130,43 @@ app.put("/lessons/:id", async function(req, res) {
         res.status(500).send(error.message);
     }
 });
-
 console.log("PUT ROUTE REGISTERED");
-app.post("/orders" , async function(req, res) {
+
+app.get("/enrolment/:lessonid", async function(req, res) {
+    try{
+        var lessonId = Number(req.params.lessonid);
+        
+        var result = await database.collection("orders").aggregate([
+            {$unwind: "$lessonIds"},
+            {$match: {lessonIds: lessonId}},
+            {$count: "totalEnrolments"}
+        ]).toArray();
+
+        var totalEnrolments = 0;
+        if(result.length > 0) {
+            totalEnrolments = result[0].totalEnrolments;
+        }
+        res.send({
+            lessonId: lessonId,
+            totalEnrolments: totalEnrolments
+        });
+    } catch(error) {
+        console.log("Error retrieving enrolments: ", error);
+        res.status(500).send("Error retrieving enrolments");
+    }
+});
+
+app.post("/orders", async function(req, res) {
     try{
         var order = req.body;
         var result = await database.collection("orders").insertOne(order);
 
-        res.send("Order saved successfully");
-    } catch(error) {
+        res.send("Order saved succesfully");
+    } catch(error){
         console.log("Error saving order", error);
         res.status(500).send("ERROR HANDLER: " + error.message);
     }
-})
+});
 
 async function startServer() {
     try{
